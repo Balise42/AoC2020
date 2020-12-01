@@ -1,12 +1,17 @@
 package main
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 )
 
 func (day *Day) Day1a() {
-	println(computeDay1a(day.input))
+	fmt.Printf("Part 1: %d\n", computeDay1a(day.input))
+}
+
+func (day *Day) Day1b() {
+	fmt.Printf("Part 2: %d\n", computeDay2a(day.input))
 }
 
 func computeDay1a(input string) int {
@@ -19,10 +24,6 @@ func computeDay1a(input string) int {
 		}
 	}
 	panic ("Could not find result")
-}
-
-func (day *Day) Day1b() {
-	println(computeDay2a(day.input))
 }
 
 func computeDay2a(input string) int {
@@ -42,12 +43,12 @@ func computeDay2a(input string) int {
 func createListAsInts(input string) []int {
 	intsAsString := strings.Split(input, "\r\n")
 	res := make([]int, len(intsAsString))
+	var err error
 	for i, v := range intsAsString {
-		conv, err := strconv.Atoi(v)
+		res[i], err = strconv.Atoi(v)
 		if err != nil {
 			panic("Could not convert input to number")
 		}
-		res[i] = conv
 	}
 	return res
 }
