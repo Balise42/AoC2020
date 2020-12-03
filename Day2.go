@@ -7,9 +7,9 @@ import (
 )
 
 type day2 struct {
-	min int
-	max int
-	letter uint8
+	min      int
+	max      int
+	letter   uint8
 	password string
 }
 
@@ -69,8 +69,7 @@ func isValidPart1(data day2) bool {
 }
 
 func isValidPart2(data day2) bool {
-	l1 := data.password[data.min - 1]
-	l2 := data.password[data.max - 1]
-	return (l1 == data.letter  || l2 == data.letter) && !(l1 == data.letter && l2 == data.letter)
+	l1 := data.password[data.min-1]
+	l2 := data.password[data.max-1]
+	return (l1 == data.letter || l2 == data.letter) && !(l1 == data.letter && l2 == data.letter)
 }
-
