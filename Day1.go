@@ -11,7 +11,7 @@ func (day *Day) Day1a() {
 }
 
 func (day *Day) Day1b() {
-	fmt.Printf("Part 2: %d\n", computeDay2a(day.input))
+	fmt.Printf("Part 2: %d\n", computeDay1b(day.input))
 }
 
 func computeDay1a(input string) int {
@@ -26,7 +26,7 @@ func computeDay1a(input string) int {
 	panic("Could not find result")
 }
 
-func computeDay2a(input string) int {
+func computeDay1b(input string) int {
 	listAsInts := createListAsInts(input)
 	for i, a := range listAsInts {
 		for j, b := range listAsInts[i+1:] {
