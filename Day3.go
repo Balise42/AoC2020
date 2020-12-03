@@ -20,19 +20,11 @@ func ComputeDay3a(input string) uint64 {
 
 func NumTrees(lines []string, xinc int, yinc int) uint64 {
 	numtrees := 0
-	for i := 0; i < len(lines)/yinc; i++ {
+	for i := 0; i*yinc < len(lines); i++ {
 		if lines[i*yinc][i*xinc%len(lines[i*yinc])] == '#' {
 			numtrees++
 		}
 	}
-	// if the number of lines is not divisible by the number of steps we're off by one, so we re-add it
-	if len(lines)/yinc*yinc < len(lines) {
-		i := len(lines) / yinc
-		if lines[i*yinc][i*xinc%len(lines[i*yinc])] == '#' {
-			numtrees++
-		}
-	}
-	println(numtrees)
 	return uint64(numtrees)
 }
 
