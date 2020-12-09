@@ -5,6 +5,8 @@ import (
 	"log"
 	"os"
 	"reflect"
+	"strconv"
+	"strings"
 )
 
 type Day struct {
@@ -31,4 +33,17 @@ func main() {
 
 	reflect.ValueOf(&day).MethodByName("Day"+arg+"a").Call([]reflect.Value{})
 	reflect.ValueOf(&day).MethodByName("Day"+arg+"b").Call([]reflect.Value{})
+}
+
+func createListAsInts(input string) []int {
+	intsAsString := strings.Split(input, "\n")
+	res := make([]int, len(intsAsString))
+	var err error
+	for i, v := range intsAsString {
+		res[i], err = strconv.Atoi(v)
+		if err != nil {
+			panic("Could not convert input " + v + " to number")
+		}
+	}
+	return res
 }

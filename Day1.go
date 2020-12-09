@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
 )
 
 func (day *Day) Day1a() {
@@ -38,17 +36,4 @@ func computeDay1b(input string) int {
 		}
 	}
 	panic("Could not find result")
-}
-
-func createListAsInts(input string) []int {
-	intsAsString := strings.Split(input, "\r\n")
-	res := make([]int, len(intsAsString))
-	var err error
-	for i, v := range intsAsString {
-		res[i], err = strconv.Atoi(v)
-		if err != nil {
-			panic("Could not convert input to number")
-		}
-	}
-	return res
 }
