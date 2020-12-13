@@ -22,7 +22,6 @@ func main() {
 	var day Day
 
 	inputpath := "D:/Home/projects/adventcalendar/2020/inputs/day" + arg + ".dat"
-	println(inputpath)
 
 	bytes, err := ioutil.ReadFile(inputpath)
 	if err != nil {
