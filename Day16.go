@@ -51,6 +51,77 @@ func ComputeDay16a(input string) int {
 	return errorRate
 }
 
+func ComputeDay16b(input string) int {
+	data := parseDay16(input)
+	validTickets := make([][]int, 0)
+	for i, ticket := range data.nearbytickets {
+		if ticketErrorRate(data, i) == 0 {
+			validTickets = append(validTickets, ticket)
+		}
+	}
+
+	consistentIndices := make(map[string][]int)
+	for rulename, rule := range data.rules {
+		consistentIndices[rulename] = getConsistentFieldIndices(validTickets, rule)
+	}
+
+	established := make(map[string]int)
+	for len(consistentIndices) != 0 {
+		for name, indices := range consistentIndices {
+			if len(indices) == 1 {
+				established[name] = indices[0]
+				delete(consistentIndices, name)
+				removeFromValidIndices(consistentIndices, indices[0])
+				break
+			}
+			// weird that it's necessary, may have a bug somewhere :^)
+			if len(indices) == 0 {
+				delete(consistentIndices, name)
+			}
+		}
+	}
+
+	res := 1
+	for k, v := range established {
+		if strings.HasPrefix(k, "departure") {
+			res = res * data.myticket[v]
+		}
+	}
+	return res
+}
+
+func removeFromValidIndices(validIndices map[string][]int, i int) {
+	for name, indices := range validIndices {
+		for k, v := range indices {
+			if v == i {
+				validIndices[name] = append(indices[:k], indices[k+1:]...)
+				break
+			}
+		}
+	}
+}
+
+func getConsistentFieldIndices(tickets [][]int, rule []int) []int {
+	res := make([]int, 0)
+	// all lines have the same number of fields, we pick the first one
+	numFields := len(tickets[0])
+
+	for i := 0; i < numFields; i++ {
+		consistent := true
+		for _, ticket := range tickets {
+			field := ticket[i]
+			if !((field >= rule[0] && field <= rule[1]) || (field >= rule[2] && field <= rule[3])) {
+				consistent = false
+				break
+			}
+		}
+		if consistent {
+			res = append(res, i)
+		}
+	}
+	return res
+}
+
 func ticketErrorRate(data Day16, ticket int) int {
 	res := 0
 	for _, field := range data.nearbytickets[ticket] {
@@ -66,8 +137,4 @@ func ticketErrorRate(data Day16, ticket int) int {
 		}
 	}
 	return res
-}
-
-func ComputeDay16b(input string) int {
-	return 0
 }
