@@ -36,9 +36,13 @@ func main() {
 
 func createListAsInts(input string) []int {
 	intsAsString := strings.Split(input, "\n")
-	res := make([]int, len(intsAsString))
+	return convertStringListToInts(intsAsString)
+}
+
+func convertStringListToInts(input []string) []int {
+	res := make([]int, len(input))
 	var err error
-	for i, v := range intsAsString {
+	for i, v := range input {
 		res[i], err = strconv.Atoi(v)
 		if err != nil {
 			panic("Could not convert input " + v + " to number")
