@@ -39,16 +39,16 @@ func (seq Day19Sequence) matches(message string) (bool, []string) {
 			str := message
 			if p != "" {
 				if !strings.HasPrefix(str, p) {
-					panic("Unexpected: string [" + str + "] is supposed to start with [" + p +"]")
+					panic("Unexpected: string [" + str + "] is supposed to start with [" + p + "]")
 				}
 				str = strings.TrimPrefix(str, p)
 			}
 			matchRule, rulePrefixes := rule.matches(str)
 			if !matchRule {
-				return false, []string {}
+				return false, []string{}
 			} else {
 				for _, rulePrefix := range rulePrefixes {
-					newPrefixes = append(newPrefixes, p + rulePrefix)
+					newPrefixes = append(newPrefixes, p+rulePrefix)
 				}
 			}
 		}
@@ -87,10 +87,13 @@ func cleanupPrefixes(prefixes []string) []string {
 }
 
 func (val Day19Char) matches(message string) (bool, []string) {
-	if message[0] == val.val {
-		return true, []string {message[:1]}
+	if len(message) == 0 {
+		return false, []string{}
 	}
-	return false, []string {}
+	if message[0] == val.val {
+		return true, []string{message[:1]}
+	}
+	return false, []string{}
 }
 
 func ComputeDay19a(input string) int {
@@ -98,7 +101,7 @@ func ComputeDay19a(input string) int {
 	rulesStr := strings.Split(parts[0], "\n")
 	messages := strings.Split(parts[1], "\n")
 
-	rules := parseDay19Rules(rulesStr)
+	rules := parseDay19Rules(rulesStr, false)
 
 	res := 0
 	for _, message := range messages {
@@ -116,7 +119,7 @@ func ComputeDay19a(input string) int {
 	return res
 }
 
-func parseDay19Rules(rulesStr []string) map[string]Day19Rule {
+func parseDay19Rules(rulesStr []string, part2 bool) map[string]Day19Rule {
 	rulesStrMap := make(map[string]string, len(rulesStr))
 	for _, str := range rulesStr {
 		toks := strings.Split(str, ": ")
@@ -125,13 +128,19 @@ func parseDay19Rules(rulesStr []string) map[string]Day19Rule {
 
 	rulesMap := make(map[string]Day19Rule, len(rulesStr))
 
-	parseDay19Rule("0", &rulesStrMap, &rulesMap)
+	for key := range rulesStrMap {
+		if !part2 {
+			parseDay19Rule(key, &rulesStrMap, &rulesMap)
+		} else if key != "0" {
+			parseDay19Rule(key, &rulesStrMap, &rulesMap)
+		}
+	}
 
 	return rulesMap
 }
 
 func parseDay19Rule(key string, strMap *map[string]string, ruleMap *map[string]Day19Rule) Day19Rule {
-	if rule, ok :=  (*ruleMap)[key]; ok {
+	if rule, ok := (*ruleMap)[key]; ok {
 		return rule
 	}
 
@@ -164,8 +173,115 @@ func parseSequence(str string, strMap *map[string]string, ruleMap *map[string]Da
 	return newRule
 }
 
-
-
 func ComputeDay19b(input string) int {
-	return 0
+	parts := strings.Split(input, "\n\n")
+	rulesStr := strings.Split(parts[0], "\n")
+	messages := strings.Split(parts[1], "\n")
+
+	rules := parseDay19Rules(rulesStr, true)
+
+	res := 0
+	for _, message := range messages {
+		messageOk := false
+		if rule8prefixes, ok := matchesDay19Rule8(message, rules); ok {
+			for _, prefix := range rule8prefixes {
+				if !messageOk {
+					toCheck := strings.TrimPrefix(message, prefix)
+					rule11prefixes, ok := matchesDay19Rule11(toCheck, rules)
+					if !ok {
+						continue
+					}
+					for _, rule11prefix := range rule11prefixes {
+						if toCheck == rule11prefix {
+							messageOk = true
+							break
+						}
+					}
+				}
+			}
+		}
+		if messageOk {
+			res++
+		}
+	}
+	return res
+}
+
+func matchesDay19Rule8(message string, rules map[string]Day19Rule) ([]string, bool) {
+	match, prefixes := rules["42"].matches(message)
+	if !match {
+		return []string{}, false
+	}
+
+	for i := 0; i < len(prefixes); i++ {
+		if strings.HasPrefix(message, prefixes[i]) {
+			newPrefixes, ok := matchesDay19Rule8(strings.TrimPrefix(message, prefixes[i]), rules)
+			if ok {
+				for _, newPrefix := range newPrefixes {
+					prefixes = append(prefixes, prefixes[i]+newPrefix)
+				}
+			}
+		}
+	}
+
+	prefixes = cleanupPrefixes(prefixes)
+	return prefixes, true
+}
+
+func matchesDay19Rule11(message string, rules map[string]Day19Rule) ([]string, bool) {
+	match, prefixes := rules["42"].matches(message)
+	if !match {
+		return []string{}, false
+	}
+
+	countsRules42 := make(map[string]int)
+	for _, prefix := range prefixes {
+		countsRules42[prefix] = 1
+	}
+
+	for i := 0; i < len(prefixes); i++ {
+		if strings.HasPrefix(message, prefixes[i]) {
+			matches, newPrefixes := rules["42"].matches(strings.TrimPrefix(message, prefixes[i]))
+			if matches {
+				for _, newPrefix := range newPrefixes {
+					prefixes = append(prefixes, prefixes[i]+newPrefix)
+					countsRules42[prefixes[i] + newPrefix] = countsRules42[prefixes[i]] + 1
+				}
+			}
+		}
+	}
+
+	ret := make([]string, 0)
+
+	for _, prefix := range prefixes {
+		countRule42 := countsRules42[prefix]
+
+		currStepPrefixes := []string {prefix}
+		nextStepPrefixes := make([]string, 0)
+		valid := true
+		for i := 0; i < countRule42; i++ {
+			for _, currStepPrefix := range currStepPrefixes {
+				matches, newPrefixes := rules["31"].matches(strings.TrimPrefix(message, currStepPrefix))
+				if matches {
+					for _, newPrefix := range newPrefixes {
+						nextStepPrefixes = append(nextStepPrefixes, currStepPrefix + newPrefix)
+					}
+				}
+			}
+			if len(nextStepPrefixes) == 0 {
+				valid = false
+				break
+			}
+			currStepPrefixes = nextStepPrefixes
+			nextStepPrefixes = make([]string, 0)
+		}
+		if valid{
+			ret = append(ret, currStepPrefixes...)
+		}
+	}
+
+	if len(ret) > 0 {
+		return ret, true
+	}
+	return []string {}, false
 }
