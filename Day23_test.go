@@ -6,18 +6,19 @@ func TestComputeDay23a(t *testing.T) {
 	type args struct {
 		s      string
 		rounds int
+		max int
 	}
 	tests := []struct {
 		name string
 		args args
 		want string
 	}{
-		{ "Day 23 part 1 example 1", args{"389125467", 10}, "92658374"},
-		{ "Day 23 part 1 example 2", args{"389125467", 100}, "67384529"},
+		{ "Day 23 part 1 example 1", args{"389125467", 10, 9}, "92658374"},
+		{ "Day 23 part 1 example 2", args{"389125467", 100, 9}, "67384529"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := ComputeDay23a(tt.args.s, tt.args.rounds); got != tt.want {
+			if got := ComputeDay23a(tt.args.s, tt.args.rounds, tt.args.max); got != tt.want {
 				t.Errorf("ComputeDay23a() = %v, want %v", got, tt.want)
 			}
 		})

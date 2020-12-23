@@ -6,7 +6,7 @@ import (
 )
 
 func (day *Day) Day23a() {
-	fmt.Printf("Part 1: %s\n", ComputeDay23a("193467258", 100))
+	fmt.Printf("Part 1: %s\n", ComputeDay23a("193467258", 100, 9))
 }
 
 func (day *Day) Day23b() {
@@ -14,98 +14,74 @@ func (day *Day) Day23b() {
 }
 
 
-func ComputeDay23a(s string, rounds int) string {
-	cups := make([]int, len(s))
-	for i, c := range s {
+func ComputeDay23a(s string, rounds int, max int) string {
+	var first *Day23Node
+	var prev *Day23Node
+	var initFirst = false
+	var latestNode *Day23Node
+
+	for _, c := range s {
 		cup, err := strconv.Atoi(string(c))
 		if err != nil {
 			panic("Cannot interpret cup " + string(c))
 		}
-		cups[i] = cup
-	}
-	currCupIndex := -1
-	for i := 0; i < rounds; i++ {
-		cups, currCupIndex = runRoundPart1(cups, (currCupIndex + 1) % len(cups))
-	}
-	cupstr := ""
-
-	pos1 := -1
-	for i, v := range cups {
-		if v == 1 {
-			pos1 = i
-			break
+		if initFirst == false {
+			first = &Day23Node{cup, nil, nil}
+			prev = first
+			initFirst = true
+		} else {
+			latestNode = &Day23Node{cup, nil, prev}
+			prev.next = latestNode
+			prev = latestNode
 		}
 	}
-	if pos1 == -1 {
-		panic("Could not find cup with index 1")
+
+	first.prev = latestNode
+	latestNode.next = first
+
+
+	computeRounds(first, rounds, max)
+
+
+	node1 := first
+	for node1.i != 1 {
+		node1 = node1.next
 	}
 
-	for i := (pos1 + 1) % len(cups); i != pos1; i = (i+1) % len(cups) {
-		cupstr += strconv.Itoa(cups[i])
+	res := ""
+	node := node1.next
+	for node.i != 1 {
+		res = res + strconv.Itoa(node.i)
+		node = node.next
 	}
-	return cupstr
+
+	return res
 }
 
-func runRoundPart1(state []int, currCupIndex int) ([]int, int) {
-	cups := state
+func computeRounds(currCup * Day23Node, rounds int, max int) {
 
-	three := make([]int, 3)
-	currCup := cups[currCupIndex]
-	if currCupIndex + 4 < len(cups) {
-		three[0], three[1], three[2] = cups[currCupIndex + 1], cups[currCupIndex + 2], cups[currCupIndex + 3]
-		cups = append(cups[:currCupIndex + 1], cups[currCupIndex + 4:]...)
-	} else if currCupIndex + 3 < len(cups) {
-		three[0], three[1], three[2] = cups[currCupIndex + 1], cups[currCupIndex + 2], cups[currCupIndex + 3]
-		cups = cups[:currCupIndex + 1]
-	} else if currCupIndex + 2 < len(cups) {
-		three[0], three[1], three[2] = cups[currCupIndex + 1], cups[currCupIndex + 2], cups[0]
-		cups = cups[1:currCupIndex + 1]
-	} else if currCupIndex + 1 < len(cups) {
-		three[0], three[1], three[2] = cups[currCupIndex + 1], cups[0], cups[1]
-		cups = cups[2:currCupIndex + 1]
-	} else {
-		copy(three, cups[:3])
-		cups = cups[3:]
-	}
-
-	dest := currCup - 1
-	if dest < 1 {
-		dest = 9
-	}
-	for dest == three[0] || dest == three[1] || dest == three[2] {
-		dest--
-		if dest < 1 {
-			dest = 9
+	for i := 0; i < rounds; i++ {
+		three := currCup.next
+		currCup.next = currCup.next.next.next.next
+		dest := currCup.i - 1
+		if dest == 0 {
+			dest = max
 		}
-	}
-
-	destIndex := -1
-	for i, v := range cups {
-		if v == dest {
-			destIndex = i
-			break
-		}
-	}
-	if destIndex == -1 {
-		panic("Could not find insertion index for " + strconv.Itoa(dest))
-	}
-
-	if destIndex < len(cups) - 1 {
-		cups = append(append(cups[:destIndex + 1], append(three, cups[destIndex + 1:]...)...))
-	} else {
-		cups = append(cups, three...)
-	}
-
-	if cups[currCupIndex] != currCup {
-		for i, v := range cups {
-			if v == currCup {
-				currCupIndex = i
-				break
+		for dest == three.i || dest == three.next.i || dest == three.next.next.i {
+			dest--
+			if dest == 0 {
+				dest = max
 			}
 		}
-	}
 
-	return cups, currCupIndex
+		destNode := currCup
+		for destNode.i != dest {
+			destNode = destNode.prev
+		}
+		three.next.next.next = destNode.next
+		destNode.next = three
+		currCup = currCup.next
+	}
 }
 
 type Day23Node struct {
@@ -114,7 +90,6 @@ type Day23Node struct {
 	prev *Day23Node
 }
 
-// fine, let's implement a ringlist then >_<
 func ComputeDay23b(s string) int64 {
 	onemil := 1000000
 	tenmil := 10000000
@@ -149,29 +124,7 @@ func ComputeDay23b(s string) int64 {
 	first.prev = latestNode
 	latestNode.next = first
 
-	currCup := first
-
-	for i := 0; i < tenmil; i++ {
-		three := currCup.next
-		currCup.next = currCup.next.next.next.next
-		dest := currCup.i - 1
-		if dest == 0 {
-			dest = onemil
-		}
-		for dest == three.i || dest == three.next.i || dest == three.next.next.i {
-			dest--
-			if dest == 0 {
-				dest = onemil
-			}
-		}
-
-		destNode := currCup
-		for destNode.i != dest {
-			destNode = destNode.prev
-		}
-		three.next.next.next = destNode.next
-		destNode.next = three
-	}
+	computeRounds(first, tenmil, onemil)
 
 	node1 := first
 	for node1.i != 1 {
